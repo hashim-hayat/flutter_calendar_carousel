@@ -782,6 +782,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
   }
 
   Future<Null> _selectDateFromPicker() async {
+  /*
     DateTime selected = await showDatePicker(
       context: context,
       initialDate: _selectedDate ?? new DateTime.now(),
@@ -807,6 +808,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                 : []);
       _setDate();
     }
+    */
   }
 
   void _setDatesAndWeeks() {
