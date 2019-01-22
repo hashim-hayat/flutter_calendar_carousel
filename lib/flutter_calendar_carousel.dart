@@ -58,6 +58,7 @@ class CalendarCarousel<T> extends StatefulWidget {
     width: 4.0,
   );
 
+  final bool pickSingleDate;
   final double viewportFraction;
   final TextStyle prevDaysTextStyle;
   final TextStyle daysTextStyle;
@@ -116,6 +117,7 @@ class CalendarCarousel<T> extends StatefulWidget {
   final WeekdayFormat weekDayFormat;
 
   CalendarCarousel({
+    this.pickSingleDate = false,
     this.viewportFraction = 1.0,
     this.prevDaysTextStyle,
     this.daysTextStyle,
@@ -741,25 +743,32 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
       _isReloadSelectedDate = false;
       _selectedDate = picked;
 
-      if (_selectedDates.length >= 2) {
-        _selectedDates.clear();
-      }
-
-      if (_selectedDates.length == 0) {
-        _selectedDates.add(picked);
-      }
-
-      if (_selectedDates.length == 1) {
-        if (picked.isAfter(_selectedDates[0])) {
-          _selectedDates.add(picked);
-        } else {
+      if (!widget.pickSingleDate) {
+        if (_selectedDates.length >= 2) {
           _selectedDates.clear();
+        }
+
+        if (_selectedDates.length == 0) {
           _selectedDates.add(picked);
         }
 
+        if (_selectedDates.length == 1) {
+          if (picked.isAfter(_selectedDates[0])) {
+            _selectedDates.add(picked);
+          } else {
+            _selectedDates.clear();
+            _selectedDates.add(picked);
+          }
+        }
+      } else {
+        if (_selectedDates.length >= 1) {
+          _selectedDates.clear();
+        }
+        _selectedDates.add(picked);
       }
 
       produceDateRange(_selectedDates);
+
 
     });
 
