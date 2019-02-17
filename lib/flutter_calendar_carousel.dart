@@ -420,7 +420,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                               ? shapeForToday(isToday)
                         : RoundedRectangleBorder(
                         side: BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: shapeForDate(now, isToday),
+                        borderRadius: shapeForDate(index, now, isToday, isSelectedDay, isThisMonthDay),
                       ),
                       child: Stack(
                         children: <Widget>[
@@ -471,10 +471,10 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
   RoundedRectangleBorder shapeForToday (bool isToday) {
     return RoundedRectangleBorder(
       side: BorderSide(
-        color: isToday ? Colors.grey.shade400 : Colors.transparent,
+          color: isToday ? widget.todayBorderColor : Colors.transparent,
         width: 0.5
       ),
-      borderRadius: BorderRadius.all(Radius.circular(25))
+      borderRadius: isToday ? BorderRadius.all(Radius.circular(25)) : BorderRadius.all(Radius.circular(0))
     );
   }
 
@@ -491,12 +491,16 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
         : widget.dayButtonColor;
   }
 
-  BorderRadiusGeometry shapeForDate(DateTime now, bool isToday) {
+  BorderRadiusGeometry shapeForDate(int index, DateTime now, bool isToday, bool isSelectedDay,bool isThisMonthDay) {
     
     if (isSingleSelectedDate(now)) {
       return BorderRadius.all(Radius.circular(25));
     }
-    
+
+    if (_localeDate.dateSymbols.WEEKENDRANGE.contains((index - 1 + 1) % 7) && !isSelectedDay && isThisMonthDay && !isToday && !isASelectedDate(now)) {
+      return BorderRadius.all(Radius.circular(0));
+    }
+
     return isStartDate(now) ? BorderRadius.only(topLeft: Radius.circular(25), bottomLeft: Radius.circular(25))
         : isEndDate(now) ? BorderRadius.only(topRight: Radius.circular(25), bottomRight: Radius.circular(25)) : BorderRadius.all(Radius.circular(0));
   }
