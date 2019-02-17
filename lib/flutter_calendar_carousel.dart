@@ -701,10 +701,19 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
   }
 
   bool isStartDate(DateTime picked){
+
+    if (_selectedDates.length > 1) {
+      return _selectedDates.first == picked && _selectedDates.first != _selectedDates.last;
+    }
+
     return _selectedDates.first == picked;
   }
 
   bool isEndDate(DateTime picked){
+
+    if (_selectedDates.length > 1) {
+      return _selectedDates.last == picked && _selectedDates.first != _selectedDates.last;;
+    }
     return _selectedDates.last == picked;
   }
 
@@ -741,8 +750,6 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
       }
 
       _selectedDateRange.add(endDate);
-
-      print(_selectedDateRange);
     }
 
     if (dates.length == 1) {
@@ -770,16 +777,18 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
         }
 
         if (_selectedDates.length == 0) {
-          _selectedDates.add(picked);
-        }
 
-        if (_selectedDates.length == 1) {
-          if (picked.isAfter(_selectedDates[0])) {
+          _selectedDates.add(picked);
+
+        } else if (_selectedDates.length == 1) {
+
+          if (picked.isAfter(_selectedDates[0]) || picked == _selectedDates[0]) {
             _selectedDates.add(picked);
           } else {
             _selectedDates.clear();
             _selectedDates.add(picked);
           }
+
         }
       } else {
         if (_selectedDates.length >= 1) {
@@ -789,8 +798,6 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
       }
 
       produceDateRange(_selectedDates);
-
-
     });
 
     if (widget.onDayPressed != null)
@@ -859,9 +866,6 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
       week1,
       week2,
     ];
-//        this._selectedDate = widget.selectedDateTime != null
-//            ? widget.selectedDateTime
-//            : DateTime.now();
   }
 
   void _setDate([int page = -1]) {
@@ -898,15 +902,10 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
           this._weeks = newWeeks;
         });
 
-        print('weeks');
-        print(this._weeks);
-
         _controller.animateToPage(page,
             duration: Duration(milliseconds: 1), curve: Threshold(0.0));
       } else {
-        print('page: $page');
         List<DateTime> dates = this._dates;
-        print('dateLength: ${dates.length}');
         if (page == 0) {
           dates[2] = DateTime(dates[0].year, dates[0].month + 1, 1);
           dates[1] = DateTime(dates[0].year, dates[0].month, 1);
@@ -926,16 +925,11 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
           this._dates = dates;
         });
 
-        print('dates');
-        print(this._dates);
 
         _controller.animateToPage(page,
             duration: Duration(milliseconds: 1), curve: Threshold(0.0));
       }
     }
-
-    print('startWeekDay: $_startWeekday');
-    print('endWeekDay: $_endWeekday');
 
     //call callback
     if (this._dates.length == 3 && widget.onCalendarChanged != null) {
