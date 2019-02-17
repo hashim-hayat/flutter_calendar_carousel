@@ -59,6 +59,10 @@ class CalendarCarousel<T> extends StatefulWidget {
   );
 
   final bool pickSingleDate;
+
+  final DateTime initalDate;
+  final DateTime endDate;
+
   final double viewportFraction;
   final TextStyle prevDaysTextStyle;
   final TextStyle daysTextStyle;
@@ -118,6 +122,8 @@ class CalendarCarousel<T> extends StatefulWidget {
 
   CalendarCarousel({
     this.pickSingleDate = false,
+    this.initalDate,
+    this.endDate,
     this.viewportFraction = 1.0,
     this.prevDaysTextStyle,
     this.daysTextStyle,
@@ -225,6 +231,11 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
     if (widget.selectedDateTime != null)
       _selectedDate = widget.selectedDateTime;
     _setDate();
+
+    if (widget.initalDate != null && widget.endDate != null) {
+      _selectedDates = [widget.initalDate, widget.endDate];
+      produceDateRange(_selectedDates);
+    }
   }
 
   @override
@@ -235,6 +246,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
 
   @override
   Widget build(BuildContext context) {
+    
     Widget headerText = DefaultTextStyle(
         style: TextStyle(fontSize: 16.0, color: Colors.black),
         child: widget.headerText != null
