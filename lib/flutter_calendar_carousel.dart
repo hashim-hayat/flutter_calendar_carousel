@@ -409,7 +409,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                           widget.maxSelectedDate.millisecondsSinceEpoch)
                     isSelectable = false;
                   return Container(
-                    margin: EdgeInsets.all(widget.dayPadding),
+                    margin: EdgeInsets.all(isASelectedDate(now) ? 0.0 : widget.dayPadding),
                     child: FlatButton(
                       color:
                       (isSelectedDay || isASelectedDate(now)) && widget.selectedDayButtonColor != null
@@ -418,10 +418,10 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                                   ? widget.todayButtonColor
                                   : widget.dayButtonColor,
                       onPressed: () => _onDayPressed(now),
-                      padding: EdgeInsets.all(widget.dayPadding),
+                      padding: EdgeInsets.all(isASelectedDate(now) ? 0.0 : widget.dayPadding),
                       shape: widget.daysHaveCircularBorder == null
                           ? CircleBorder()
-                          : widget.daysHaveCircularBorder
+                          : widget.daysHaveCircularBorder && !isASelectedDate(now)
                               ? CircleBorder(
                                   side: BorderSide(
                                     color: isSelectedDay
@@ -438,22 +438,26 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                                                         .thisMonthDayBorderColor,
                                   ),
                                 )
-                              : RoundedRectangleBorder(
-                                  side: BorderSide(
-                                    color: isSelectedDay
-                                        ? widget.selectedDayBorderColor
-                                        : isPrevMonthDay
-                                            ? widget.prevMonthDayBorderColor
-                                            : isNextMonthDay
-                                                ? widget.nextMonthDayBorderColor
-                                                : isToday &&
-                                                        widget.todayBorderColor !=
-                                                            null
-                                                    ? widget.todayBorderColor
-                                                    : widget
-                                                        .thisMonthDayBorderColor,
-                                  ),
-                                ),
+//                              : RoundedRectangleBorder(
+//                                  side: BorderSide(
+//                                    color: isSelectedDay
+//                                        ? widget.selectedDayBorderColor
+//                                        : isPrevMonthDay
+//                                            ? widget.prevMonthDayBorderColor
+//                                            : isNextMonthDay
+//                                                ? widget.nextMonthDayBorderColor
+//                                                : isToday &&
+//                                                        widget.todayBorderColor !=
+//                                                            null
+//                                                    ? widget.todayBorderColor
+//                                                    : widget
+//                                                        .thisMonthDayBorderColor,
+//                                  ),
+//                                ),
+                        : RoundedRectangleBorder(
+                        side: BorderSide(color: Colors.transparent, width: 0),
+                        borderRadius: shapeForDate(now),
+                      ),
                       child: Stack(
                         children: <Widget>[
                           Center(
@@ -479,26 +483,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                                           : widget.defaultInactiveDaysTextStyle,
                               child: Text(
                                 '${now.day}',
-                                style: (_localeDate.dateSymbols.WEEKENDRANGE
-                                            .contains(
-                                                (index - 1 + 1) %
-                                                    7)) &&
-                                        !isSelectedDay &&
-                                        isThisMonthDay &&
-                                        !isToday
-                                    ? (isSelectable
-                                        ? widget.weekendTextStyle
-                                        : widget.inactiveWeekendTextStyle)
-                                    : isPrevMonthDay
-                                        ? widget.prevDaysTextStyle
-                                        : isNextMonthDay
-                                            ? widget.nextDaysTextStyle
-                                            : isToday
-                                                ? widget.todayTextStyle
-                                                : isSelectable
-                                                    ? widget.daysTextStyle
-                                                    : widget
-                                                        .inactiveDaysTextStyle,
+                                style: styleForDate(index, now, isSelectedDay, isThisMonthDay, isToday),
                                 maxLines: 1,
                               ),
                             ),
@@ -517,6 +502,29 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
         ],
       ),
     );
+  }
+
+  BorderRadiusGeometry shapeForDate(DateTime now) {
+    
+    if (isSingleSelectedDate(now)) {
+      return BorderRadius.all(Radius.circular(25));
+    }
+    
+    return isStartDate(now) ? BorderRadius.only(topLeft: Radius.circular(25), bottomLeft: Radius.circular(25))
+        : isEndDate(now) ? BorderRadius.only(topRight: Radius.circular(25), bottomRight: Radius.circular(25)) : BorderRadius.all(Radius.circular(0));
+  }
+
+  TextStyle styleForDate(int index, DateTime now, bool isSelectedDay, bool isThisMonthDay, bool isToday) {
+
+    if (isSelectedDay || isASelectedDate(now)) {
+      return widget.selectedDayTextStyle;
+    }
+
+    if (_localeDate.dateSymbols.WEEKENDRANGE.contains((index - 1 + 1) % 7) && !isSelectedDay && isThisMonthDay && !isToday) {
+      return widget.weekendTextStyle;
+    }
+
+    return widget.weekdayTextStyle;
   }
 
   AnimatedBuilder weekBuilder(int slideIndex) {
@@ -663,9 +671,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                                         : defaultTextStyle,
                                 child: Text(
                                   '${now.day}',
-                                  style: (index % 7 == 0 || index % 7 == 6) &&
-                                          !(isSelectedDay || isASelectedDate(now)) &&
-                                          !isToday
+                                  style: (index % 7 == 0 || index % 7 == 6) && !(isSelectedDay || isASelectedDate(now)) && !isToday
                                       ? widget.weekendTextStyle
                                       : isToday
                                           ? widget.todayTextStyle
@@ -699,8 +705,32 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
         .toList();
   }
 
+  bool isSingleSelectedDate(DateTime picked){
+    return _selectedDates.first == picked && _selectedDates.length == 1;
+  }
+
+  bool isStartDate(DateTime picked){
+    return _selectedDates.first == picked;
+  }
+
+  bool isEndDate(DateTime picked){
+    return _selectedDates.last == picked;
+  }
+
+
   bool isASelectedDate(DateTime picked) {
     return (_selectedDateRange.contains(picked));
+  }
+
+  bool isASelectedDateExcludingBoundaries(DateTime picked) {
+
+    List<DateTime> copy = [];
+    _selectedDateRange.forEach((f) {copy.add(f);});
+
+    copy.removeAt(0);
+    copy.removeLast();
+
+    return copy.contains(picked);
   }
 
   void produceDateRange(List<DateTime> dates) {
