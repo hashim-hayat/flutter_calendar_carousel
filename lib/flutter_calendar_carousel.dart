@@ -411,49 +411,17 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                   return Container(
                     margin: EdgeInsets.all(isASelectedDate(now) ? 0.0 : widget.dayPadding),
                     child: FlatButton(
-                      color:
-                      (isSelectedDay || isASelectedDate(now)) && widget.selectedDayButtonColor != null
-                              ? widget.selectedDayButtonColor
-                              : isToday && widget.todayButtonColor != null
-                                  ? widget.todayButtonColor
-                                  : widget.dayButtonColor,
+                      color: colorForDate(index, now, isSelectedDay, isToday, isThisMonthDay),
                       onPressed: () => _onDayPressed(now),
                       padding: EdgeInsets.all(isASelectedDate(now) ? 0.0 : widget.dayPadding),
                       shape: widget.daysHaveCircularBorder == null
                           ? CircleBorder()
                           : widget.daysHaveCircularBorder && !isASelectedDate(now)
-                              ? CircleBorder(
+                              ? RoundedRectangleBorder(
                                   side: BorderSide(
-                                    color: isSelectedDay
-                                        ? widget.selectedDayBorderColor
-                                        : isPrevMonthDay
-                                            ? widget.prevMonthDayBorderColor
-                                            : isNextMonthDay
-                                                ? widget.nextMonthDayBorderColor
-                                                : isToday &&
-                                                        widget.todayBorderColor !=
-                                                            null
-                                                    ? widget.todayBorderColor
-                                                    : widget
-                                                        .thisMonthDayBorderColor,
+                                    color: Colors.transparent,
                                   ),
                                 )
-//                              : RoundedRectangleBorder(
-//                                  side: BorderSide(
-//                                    color: isSelectedDay
-//                                        ? widget.selectedDayBorderColor
-//                                        : isPrevMonthDay
-//                                            ? widget.prevMonthDayBorderColor
-//                                            : isNextMonthDay
-//                                                ? widget.nextMonthDayBorderColor
-//                                                : isToday &&
-//                                                        widget.todayBorderColor !=
-//                                                            null
-//                                                    ? widget.todayBorderColor
-//                                                    : widget
-//                                                        .thisMonthDayBorderColor,
-//                                  ),
-//                                ),
                         : RoundedRectangleBorder(
                         side: BorderSide(color: Colors.transparent, width: 0),
                         borderRadius: shapeForDate(now),
@@ -502,6 +470,19 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
         ],
       ),
     );
+  }
+
+  Color colorForDate(int index, DateTime now, bool isSelectedDay, bool isToday, bool isThisMonthDay) {
+
+    if (_localeDate.dateSymbols.WEEKENDRANGE.contains((index - 1 + 1) % 7) && !isSelectedDay && isThisMonthDay && !isToday && !isASelectedDate(now)) {
+      return Colors.grey.shade200;
+    }
+
+    return (isSelectedDay || isASelectedDate(now)) && widget.selectedDayButtonColor != null
+        ? widget.selectedDayButtonColor
+        : isToday && widget.todayButtonColor != null
+        ? widget.todayButtonColor
+        : widget.dayButtonColor;
   }
 
   BorderRadiusGeometry shapeForDate(DateTime now) {
