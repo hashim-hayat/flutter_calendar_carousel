@@ -766,7 +766,11 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
   }
 
   bool isHoliday(DateTime picked) {
-    return widget.holidays.contains(picked);
+
+    if (widget.holidays != null) {
+      return widget.holidays.contains(picked);
+    }
+    return false;
   }
 
   void produceDateRange(List<DateTime> dates) {
