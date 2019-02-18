@@ -531,7 +531,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
     }
 
     if (isHoliday(now)) {
-      return Colors.grey.shade200;
+      return widget.holidayColor != null ? widget.holidayColor : Colors.grey.shade200;
     }
 
   }
