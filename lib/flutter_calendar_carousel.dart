@@ -59,10 +59,8 @@ class CalendarCarousel<T> extends StatefulWidget {
   );
 
   final bool pickSingleDate;
-
   final DateTime initalDate;
   final DateTime endDate;
-
   final List<DateTime> holidays;
   final Color holidayColor;
 
@@ -210,6 +208,9 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
   int _endWeekday = 0;
   DateFormat _localeDate;
 
+  int currentPage = -1;
+  bool initialDatesChanged = false;
+
   /// When FIRSTDAYOFWEEK is 0 in dart-intl, it represents Monday. However it is the second day in the arrays of Weekdays.
   /// Therefore we need to add 1 modulo 7 to pick the right weekday from intl. (cf. [GlobalMaterialLocalizations])
   int firstDayOfWeek = 0;
@@ -233,14 +234,16 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
 
     _localeDate = DateFormat.yMMM(widget.locale);
     firstDayOfWeek = (_localeDate.dateSymbols.FIRSTDAYOFWEEK + 1) % 7;
-    if (widget.selectedDateTime != null)
+    if (widget.selectedDateTime != null) {
       _selectedDate = widget.selectedDateTime;
-    _setDate();
+    } else {
 
-    if (widget.initalDate != null && widget.endDate != null) {
-      _selectedDates = [widget.initalDate, widget.endDate];
-      produceDateRange(_selectedDates);
+      if (widget.initalDate != null) {
+        _selectedDate = widget.initalDate;
+      }
     }
+
+    _setDate();
   }
 
   @override
@@ -251,6 +254,18 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
 
   @override
   Widget build(BuildContext context) {
+
+    print("Recreating");
+
+    if (widget.initalDate != null && widget.endDate != null && !initialDatesChanged) {
+      _selectedDates = [widget.initalDate, widget.endDate];
+      produceDateRange(_selectedDates);
+      _selectedDate = widget.initalDate;
+      print("produceDateRange");
+      print(_selectedDates);
+    }
+
+    _setDate(currentPage);
 
     Widget headerText = DefaultTextStyle(
         style: TextStyle(fontSize: 16.0, color: Colors.black),
@@ -320,15 +335,15 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
           ),
           Expanded(
               child: PageView.builder(
-            itemCount: 3,
-            onPageChanged: (index) {
-              this._setDate(index);
-            },
-            controller: _controller,
-            itemBuilder: (context, index) {
-              return widget.weekFormat ? weekBuilder(index) : builder(index);
-            },
-            pageSnapping: true,
+              itemCount: 3,
+              onPageChanged: (index) {
+                this._setDate(index);
+              },
+              controller: _controller,
+              itemBuilder: (context, index) {
+                return widget.weekFormat ? weekBuilder(index) : builder(index);
+              },
+              pageSnapping: true,
           )),
         ],
       ),
@@ -729,7 +744,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
 
 
   bool isSingleSelectedDate(DateTime picked){
-    return _selectedDates.first == picked && _selectedDates.length == 1;
+    return !_selectedDates.isEmpty && _selectedDates.first == picked && _selectedDates.length == 1;
   }
 
   bool isStartDate(DateTime picked){
@@ -738,7 +753,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
       return _selectedDates.first == picked && _selectedDates.first != _selectedDates.last;
     }
 
-    return _selectedDates.first == picked;
+    return !_selectedDates.isEmpty && _selectedDates.first == picked;
   }
 
   bool isEndDate(DateTime picked){
@@ -746,7 +761,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
     if (_selectedDates.length > 1) {
       return _selectedDates.last == picked && _selectedDates.first != _selectedDates.last;;
     }
-    return _selectedDates.last == picked;
+    return !_selectedDates.isEmpty &&  _selectedDates.last == picked;
   }
 
 
@@ -807,11 +822,14 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
         picked.millisecondsSinceEpoch >
             widget.maxSelectedDate.millisecondsSinceEpoch) return;
 
+    initialDatesChanged = true;
+    _selectedDate = null;
+
     setState(() {
       _isReloadSelectedDate = false;
       _selectedDate = picked;
 
-      if (!widget.pickSingleDate) {
+      if (widget.pickSingleDate != null && !widget.pickSingleDate) {
         if (_selectedDates.length >= 2) {
           _selectedDates.clear();
         }
@@ -909,6 +927,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
   }
 
   void _setDate([int page = -1]) {
+
     if (page == -1) {
       setState(() {
         _isReloadSelectedDate = false;
@@ -978,6 +997,8 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
         widget.onCalendarChanged(this._dates[1]);
       });
     }
+
+    currentPage = page;
   }
 
   List<Widget> _renderWeekDays() {
