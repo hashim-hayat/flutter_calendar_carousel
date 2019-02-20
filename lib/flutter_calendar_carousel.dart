@@ -255,14 +255,10 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
   @override
   Widget build(BuildContext context) {
 
-    print("Recreating");
-
     if (widget.initalDate != null && widget.endDate != null && !initialDatesChanged) {
       _selectedDates = [widget.initalDate, widget.endDate];
       produceDateRange(_selectedDates);
       _selectedDate = widget.initalDate;
-      print("produceDateRange");
-      print(_selectedDates);
     }
 
     _setDate(currentPage);
