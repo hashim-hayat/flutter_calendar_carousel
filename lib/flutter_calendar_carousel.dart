@@ -475,7 +475,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
                                           : widget.defaultInactiveDaysTextStyle,
                               child: Text(
                                 '${now.day}',
-                                style: styleForDate(index, now, isSelectedDay, isThisMonthDay, isToday),
+                                style: styleForDate(index, now, isSelectedDay, isThisMonthDay, isToday, isPrevMonthDay, isNextMonthDay),
                                 maxLines: 1,
                               ),
                             ),
@@ -547,7 +547,7 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
 
   }
 
-  TextStyle styleForDate(int index, DateTime now, bool isSelectedDay, bool isThisMonthDay, bool isToday) {
+  TextStyle styleForDate(int index, DateTime now, bool isSelectedDay, bool isThisMonthDay, bool isToday, bool isPrevMonthDay, bool isNextMonthDay) {
 
     if (isSelectedDay || isASelectedDate(now)) {
       return widget.selectedDayTextStyle;
@@ -555,6 +555,10 @@ class _CalendarState<T> extends State<CalendarCarousel<T>> {
 
     if (_localeDate.dateSymbols.WEEKENDRANGE.contains((index - 1 + 1) % 7) && !isSelectedDay && isThisMonthDay && !isToday) {
       return widget.weekendTextStyle;
+    }
+
+    if (isPrevMonthDay || isNextMonthDay) {
+      return TextStyle(color: Colors.grey.shade400);
     }
 
     return widget.weekdayTextStyle;
